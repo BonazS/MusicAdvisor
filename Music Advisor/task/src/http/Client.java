@@ -20,21 +20,25 @@ public class Client {
             CLIENT_URI
     );
     private static final String SPOTIFY_ACCESS_TOKEN_LINK = "https://accounts.spotify.com/api/token";
-    private static final int AUTH_TIMEOUT_MS = 1000;
-    private static final int ACCESS_TOKEN_TIMEOUT_MS = 1000;
-    private String accessToken;
+    private static final int AUTH_TIMEOUT_MS = 10000;
+    private static final int ACCESS_TOKEN_TIMEOUT_MS = 10000;
+    private String spotifyAuthCode;
+    private String spotifyAccessToken;
     private String jsonData = "";
 
     public Client() {
         client = HttpClient.newBuilder().build();
-        accessToken = "";
     }
 
     public String getSpotifyAuthLink() { return SPOTIFY_AUTH_LINK; }
 
-    private void setAccessToken(String accessToken) { this.accessToken = accessToken; }
+    public String getSpotifyAuthCode() { return spotifyAuthCode; }
 
-    public String getAccessToken() { return accessToken; }
+    public void setSpotifyAuthCode(String spotifyAuthCode) { this.spotifyAuthCode = spotifyAuthCode; }
+
+    private void setAccessToken(String accessToken) { this.spotifyAccessToken = accessToken; }
+
+    public String getAccessToken() { return spotifyAccessToken; }
 
     public HttpResponse<String> sendSpotifyAuthorization() throws IOException, InterruptedException {
         System.out.println("waiting for code...");
@@ -42,22 +46,31 @@ public class Client {
                 .uri(URI.create(SPOTIFY_AUTH_LINK))
                 .timeout(Duration.ofMillis(AUTH_TIMEOUT_MS))
                 .build();
-        return clientSendRequest(spotifyAuthRequest);
+        HttpResponse<String> response = clientSendRequest(spotifyAuthRequest);
+        System.out.println(response.statusCode());
+        System.out.println(response.body());
+        return response;
     }
 
     public HttpResponse<String> sendSpotifyAccessToken() throws IOException, InterruptedException {
         System.out.println("making http request for access_token...");
-        HttpRequest spotifyAuthRequest = HttpRequest.newBuilder()
+        HttpRequest spotifyAccessTokenRequest = HttpRequest.newBuilder()
                 .header("Content-Type",
                         "application/x-www-form-urlencoded")
                 .header("Authorization",
                         "Basic " + Base64.getEncoder()
                                 .encodeToString("%s:%s".formatted(SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET).getBytes()))
                 .uri(URI.create(SPOTIFY_ACCESS_TOKEN_LINK))
-                .POST(HttpRequest.BodyPublishers.ofString(""))
+                .POST(HttpRequest.BodyPublishers.ofString(
+                        String.format(
+                                "code=%s&redirect_uri=%s&grant_type=authorization_code",
+                                getSpotifyAuthCode(),
+                                CLIENT_URI)
+                        )
+                )
                 .timeout(Duration.ofMillis(ACCESS_TOKEN_TIMEOUT_MS))
                 .build();
-        return clientSendRequest(spotifyAuthRequest);
+        return clientSendRequest(spotifyAccessTokenRequest);
     }
 
     public HttpRequest clientGETRequest() {
