@@ -11,15 +11,17 @@ import java.util.Base64;
 public class Client {
 
     private final HttpClient client;
-    private static final String CLIENT_URI = "http://localhost:8080";
+    private String spotifyAccessPoint = "https://accounts.spotify.com";
+    private final String CLIENT_URI = "http://localhost:8080";
     private static final String SPOTIFY_CLIENT_ID = "2f48afb9911d4d9baf554c513843c264";
     private static final String SPOTIFY_CLIENT_SECRET = "9fbb9e072d9c46b392a046e6f7770772";
-    private static final String SPOTIFY_AUTH_LINK = String.format(
-            "https://accounts.spotify.com/authorize?client_id=%s&redirect_uri=%s&response_type=code",
+    private final String SPOTIFY_AUTH_LINK = String.format(
+            "%s/authorize?client_id=%s&redirect_uri=%s&response_type=code",
+            spotifyAccessPoint,
             SPOTIFY_CLIENT_ID,
             CLIENT_URI
     );
-    private static final String SPOTIFY_ACCESS_TOKEN_LINK = "https://accounts.spotify.com/api/token";
+    private final String SPOTIFY_ACCESS_TOKEN_LINK = String.format("%s/api/token", spotifyAccessPoint);
     private static final int AUTH_TIMEOUT_MS = 10000;
     private static final int ACCESS_TOKEN_TIMEOUT_MS = 10000;
     private String spotifyAuthCode;
@@ -28,6 +30,11 @@ public class Client {
 
     public Client() {
         client = HttpClient.newBuilder().build();
+    }
+
+    public Client(String spotifyAccessPoint) {
+        this();
+        this.spotifyAccessPoint = spotifyAccessPoint;
     }
 
     public String getSpotifyAuthLink() { return SPOTIFY_AUTH_LINK; }
@@ -53,7 +60,7 @@ public class Client {
     }
 
     public HttpResponse<String> sendSpotifyAccessToken() throws IOException, InterruptedException {
-        System.out.println("making http request for access_token...");
+        // System.out.println("making http request for access_token...");
         HttpRequest spotifyAccessTokenRequest = HttpRequest.newBuilder()
                 .header("Content-Type",
                         "application/x-www-form-urlencoded")
