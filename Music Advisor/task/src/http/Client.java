@@ -43,7 +43,7 @@ public class Client {
 
     public void setSpotifyAuthCode(String spotifyAuthCode) { this.spotifyAuthCode = spotifyAuthCode; }
 
-    private void setAccessToken(String accessToken) { this.spotifyAccessToken = accessToken; }
+    public void setAccessToken(String accessToken) { this.spotifyAccessToken = accessToken; }
 
     public String getAccessToken() { return spotifyAccessToken; }
 
